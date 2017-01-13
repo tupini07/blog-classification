@@ -1,5 +1,6 @@
 (ns clb.feed-parse
-  (:use feedparser-clj.core))
+  (:use feedparser-clj.core)
+  (:require [clojure.string :as st]))
 
 ;; (def ptf (parse-feed "https://gigaom.com/feed/"))
 ;; (def tent (:entries ptf))
@@ -7,7 +8,17 @@
 ;; (keys (first tent))
 ;; (map :description (:entries ptf))
 
+(defn get-words [html]
+  "Strips out HTML and returns only the alpha character in lowecase"
+  (->> (-> html
+           (st/replace #"<[^>]+>" "") ; Remove HTML characters
+           (st/split #"[^A-Z^a-z]+")) ; Split in non-alpha characters
+       (filter #(not= % ""))          ; Filter out empty strings
+       (map st/lower-case)))          ; Convert all to lower-case
+
 (defn word-count [url]
+  "given a URL of a feed it returns [{:title entry-title 
+                                      :words-counts {:word1 cnt1 ...}]"
   (->> (parse-feed url)
        :entries
        (map (fn [ent] ;; do the following proces once for each entry
@@ -19,7 +30,7 @@
                                (:description ent))
                              :value ; get the value of the field
                              (str " " ttle)
-                             (clojure.string/split #"\s"))
+                             get-words)
                     rf   (fn [mp wrd]
                            (if-not (contains? mp wrd) ; if map still doesn't contains the word
                              (assoc mp wrd 1) ; associate value of word with 1
@@ -27,3 +38,4 @@
                 {:title ttle
                  :wc    (reduce rf {} txt)})))))
 
+(word-count "https://gigaom.com/feed/")
