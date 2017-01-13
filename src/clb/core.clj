@@ -1,7 +1,8 @@
 (ns clb.core
   (:gen-class)
   (:require [clojure.string :as st]
-            [clb.feed-parse :as fp]))
+            [clb.feed-parse :as fp]
+            [clojure.pprint :as pp]))
 
 (defn rsrc-path [fname]
   (->  (clojure.java.io/resource fname)
@@ -39,6 +40,12 @@
                    (< 0.1 frac 0.5))))
        (map first)))
 
+(defn create-file [all-wc ttl-wc feedlist]
+  (def fna "dtset.txt")
+  (spit fna "Blog")
+  (doseq [wrd (get-words ttl-wc feedlist)]
+    (spit fna (str "\t" wrd) :append true))
+  )
 
 (def feeds [ ; test feeds so we don't have to load aaaalll the feeds when testing
             "https://gigaom.com/feed/"
@@ -49,7 +56,8 @@
 (def pff (process-feeds feeds))
 (def a (first pff))
 (def b (second pff))
-(get-words b feeds)
+(def wrds (get-words b feeds))
+(create-file a b feeds)
 
 (defn -main
   "Cows"
