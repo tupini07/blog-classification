@@ -1,4 +1,4 @@
- (ns clb.core
+(ns clb.core
   (:gen-class)
   (:require [clojure.string :as st]
             [clb.rss-parse :as rsp]
@@ -13,6 +13,8 @@
         wordlist        (fp/get-wordlist ttl-wc feeds)]
     (fp/create-dataset all-wc wordlist)))
 
+(defn read-dataset-file []
+  (fp/read-dataset))
 
 (defn -main
   "Cows"
