@@ -76,16 +76,4 @@
   (read-string (slurp (rsrc-path fna))))
 
 
-(def feeds [ ; test feeds so we don't have to load aaaalll the feeds when testing
-            "https://gigaom.com/feed/"
-            "http://feeds.feedburner.com/37signals/beMH"
-            "http://feeds.feedburner.com/blogspot/bRuz"
-            ])
-
-;; (read-dataset)
-(def pff (process-feeds feeds))
-(def a (first pff))
-(def b (second pff))
-(def wrds (get-wordlist b feeds))
-;; (def p (create-dataset a wrds))
 
