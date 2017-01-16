@@ -1,4 +1,4 @@
-(ns clb.feed-parse
+(ns clb.rss-parse
   (:use feedparser-clj.core)
   (:require [clojure.string :as st]))
 
@@ -43,4 +43,4 @@
        (#(identity {:title (:title feed)
                      :wc %})))) ; return a wc of all words in all entries
 
-(word-count "https://gigaom.com/feed/")
+;; (word-count "https://gigaom.com/feed/")
