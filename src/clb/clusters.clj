@@ -76,3 +76,46 @@
   "Gets the already processed clusters and finds the pair with the least distance"
   [prc-clsts]
   (apply min-key :dist prc-clsts))
+
+(defn get-by-id
+  "Given the ID of a cluster and the cluster space returns the cluster with said ID
+   that is in the top level of the space."
+  [id space]
+  (some #(when (= (:id %) id) %) space))
+
+(defn remove-by-id
+  "given a set of ids and a space remove cluster with said ID"
+  [space ids]
+  (filter #(not (contains? ids (:id %))) space))
+
+(defn average-positions
+  "returns a new pos map where the value of each dimension is the average of said dimension
+   in both passed positions. Supposes that pos1 and pos2 both specify the same dimenstions.
+     e:  (= (keys pos1) (keys pos2))"
+  [pos1 pos2]
+  (->> (keys pos1)
+       (map (fn [k] 
+              {k (/ 
+                  (+ (pos1 k) (pos2 k)) 
+                  2)}))
+       (apply merge)))
+
+(defn merge-clusters
+  ([id1 id2 space]
+   "Gets 2 cluster ids, finds them in space, merges them into new cluster and returns it"
+   (merge-clusters (get-by-id id1 space)
+                   (get-by-id id2 space)))
+  ([c1 c2]
+   "Merges 2 clusters into new cluster and returns it"
+   (let [new-pos (average-positions (:pos c1) (:pos c2))]
+     (make-cluster new-pos ; new position for this cluster
+                   c1      ; cluster's left branch
+                   c2))))  ; cluster's right branch
+
+(defn subst-merged 
+  "Gets 2 clusters and the space. Merges this 2 clusters, removes them from space and in their place adds the merged one."
+  [c1 c2 space]
+  (let [merged  (merge-clusters c1 c2) ; the result of merging c1 and c2
+        ids     #{(:id c1) (:id c2)}
+        space-r (remove-by-id space ids)] ; space without c1 and c2
+    (conj space-r merged))) ; add merged to new space and return
