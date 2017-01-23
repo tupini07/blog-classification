@@ -128,18 +128,9 @@
   [clsts]
   (if (or (= (count clsts) 1)
           (empty? clsts))
-    clsts
+    (first clsts) ; initially this was actually an array but what we want is the tree's root
     (let [distances    (calc-dists clsts)
           nearest-pair (:ids (find-min-dist distances))
           [idc1 idc2]  (seq nearest-pair)]
       (recur (merge-and-subst clsts idc1 idc2)))))
 
-(defn remove-pos-from-tree
-  "utility function for printing that recursively constructs a new tree where no element has the 'pos' key"
-  [clsts]
-  (let [ths (dissoc clsts :pos)] 
-    (if (:right ths)
-      (do (-> ths
-              (assoc :right (remove-pos-from-tree (:right ths)))
-              (assoc :left  (remove-pos-from-tree (:left ths)))))
-      ths)))

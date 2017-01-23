@@ -2,7 +2,8 @@
   (:gen-class)
   (:require [clojure.pprint :as pp]
             [clb.feed-process :as fp]
-            [clb.clusters :as cls]))
+            [clb.clusters :as cls]
+            [clb.print-ut :as pu]))
 
 (defn process-feeds-and-create-dataset []
   "Exactly what the name suggests"
@@ -24,9 +25,13 @@
 
 (def clustered (blogs->clusters))
 (def processed-space (cls/process-space clustered))
-(def cleaned (cls/remove-pos-from-tree (first processed-space)))
+processed-space
 
-(pp/pprint cleaned) ; should show you the final data-structure correctly printed
+(def no-pos (pu/remove-pos-from-tree processed-space)) ; :pos is removed from each node so it doesn't clutter the screen
+(def only-blog (pu/leave-only processed-space :blog))  ; only :blog is left 
+
+
+(pp/pprint only-blog) 
 
 (defn -main
   "Cows"
