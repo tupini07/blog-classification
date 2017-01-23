@@ -67,10 +67,11 @@
      :dist (pearson (:pos cl1) (:pos cl2))})
 
   ;; this could be more efficient but for ocmprehentions sake..
-  (let [poss-c (comb/combinations space)] ;; array of pairs of all possible combinations
+  (let [poss-c (comb/combinations space 2)] ;; array of pairs of all possible combinations
     (->> poss-c
          (map (fn [[cl1 cl2]]
                 (single-distances cl1 cl2))))))
+
 
 (defn find-min-dist 
   "Gets the already processed clusters and finds the pair with the least distance"
@@ -90,7 +91,7 @@
 
 (defn average-positions
   "returns a new pos map where the value of each dimension is the average of said dimension
-   in both passed positions. Supposes that pos1 and pos2 both specify the same dimenstions.
+   in both passed positions. Supposes that pos1 and pos2 both specify the same dimensions.
      e:  (= (keys pos1) (keys pos2))"
   [pos1 pos2]
   (->> (keys pos1)
@@ -112,10 +113,33 @@
                    c1      ; cluster's left branch
                    c2))))  ; cluster's right branch
 
-(defn subst-merged 
+(defn merge-and-subst 
   "Gets 2 clusters and the space. Merges this 2 clusters, removes them from space and in their place adds the merged one."
-  [c1 c2 space]
-  (let [merged  (merge-clusters c1 c2) ; the result of merging c1 and c2
+  [space c1 c2]
+  (let [c1      (if (:id c1) c1 (get-by-id c1 space)) ; If c1 doesn't contain :id element then c1 IS the ID.
+        c2      (if (:id c2) c2 (get-by-id c2 space))
+        merged  (merge-clusters c1 c2) ; the result of merging c1 and c2
         ids     #{(:id c1) (:id c2)}
         space-r (remove-by-id space ids)] ; space without c1 and c2
     (conj space-r merged))) ; add merged to new space and return
+
+(defn process-space 
+  "gets a space array of clusters and process loops on it until there is only one cluster left"
+  [clsts]
+  (if (or (= (count clsts) 1)
+          (empty? clsts))
+    clsts
+    (let [distances    (calc-dists clsts)
+          nearest-pair (:ids (find-min-dist distances))
+          [idc1 idc2]  (seq nearest-pair)]
+      (recur (merge-and-subst clsts idc1 idc2)))))
+
+(defn remove-pos-from-tree
+  "utility function for printing that recursively constructs a new tree where no element has the 'pos' key"
+  [clsts]
+  (let [ths (dissoc clsts :pos)] 
+    (if (:right ths)
+      (do (-> ths
+              (assoc :right (remove-pos-from-tree (:right ths)))
+              (assoc :left  (remove-pos-from-tree (:left ths)))))
+      ths)))
